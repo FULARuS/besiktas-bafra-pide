@@ -33,6 +33,18 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let selectedIndex = 0;
 let colorTween;
 let refreshTravel = () => {};
+let followScroll = !location.hash || location.hash === '#ana';
+
+function useAnchor(hash) {
+  followScroll = !hash || hash === '#ana';
+  refreshTravel();
+}
+
+function resumeFlight() {
+  if (followScroll) return;
+  followScroll = true;
+  refreshTravel();
+}
 
 const traveller = document.createElement('div');
 traveller.className = 'traveller';
@@ -116,7 +128,22 @@ function selectFlavor(index, direction = 1, animate = !reduced.matches) {
   refreshTravel();
 }
 
-window.addEventListener('hashchange', updateLanguageLinks);
+window.addEventListener('hashchange', () => {
+  useAnchor(location.hash);
+  updateLanguageLinks();
+});
+document.addEventListener('click', event => {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest('a[href^="#"]');
+  if (link) useAnchor(link.hash);
+});
+window.addEventListener('wheel', resumeFlight, { passive: true });
+window.addEventListener('touchmove', resumeFlight, { passive: true });
+window.addEventListener('keydown', event => {
+  if (!event.defaultPrevented && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) {
+    resumeFlight();
+  }
+});
 for (const link of document.querySelectorAll('[data-recommend]')) {
   link.addEventListener('click', event => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -224,6 +251,10 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
   }
 
   refreshTravel = () => {
+    if (!followScroll) {
+      showFlight(null);
+      return;
+    }
     const heroBox = heroAnchor.getBoundingClientRect();
     const detailBox = detailAnchor.getBoundingClientRect();
     const next = cards[selectedIndex].querySelector('[data-landing] .pide-art');
