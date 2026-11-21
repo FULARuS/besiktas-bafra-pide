@@ -1,0 +1,80 @@
+export const flavors = [
+  {
+    "id": "kiymali",
+    "name": "Kıymalı Bafra",
+    "title": "Kıymalı Bafra pidesi",
+    "kind": "Kapalı pide",
+    "photo": "studio/kiymali.webp",
+    "theme": "#763817",
+    "light": "#e8aa63",
+    "feature": "Bafra’nın klasiği",
+    "ingredients": "Kavrulmuş dana kıyma|Soğan",
+    "description": "İncecik, çıtır hamurun içinde kavrulmuş dana kıyma ve soğan.",
+    "alt": "Ahşap tahta üzerinde dilimlenmiş kıymalı Bafra pidesi"
+  },
+  {
+    "id": "sucuklu",
+    "name": "Sucuklu kaşarlı",
+    "title": "Sucuklu kaşarlı Bafra pidesi",
+    "kind": "Kapalı pide",
+    "photo": "studio/sucuklu.webp",
+    "theme": "#77272e",
+    "light": "#f3a394",
+    "feature": "Baharatlı ve peynirli",
+    "ingredients": "Sucuk|Kaşar peyniri",
+    "description": "Baharatlı sucuk ve eriyen kaşar, ince kapalı hamurun içinde.",
+    "alt": "Ahşap servis tahtasında sucuklu kaşarlı Bafra pidesi"
+  },
+  {
+    "id": "ispanakli",
+    "name": "Ispanaklı Bafra",
+    "title": "Ispanaklı Bafra pidesi",
+    "kind": "Kapalı pide",
+    "photo": "studio/ispanakli.webp",
+    "theme": "#344835",
+    "light": "#bfcc8a",
+    "feature": "Ispanaklı iç harç",
+    "ingredients": "Ispanak",
+    "description": "Kızarmış, ince hamurun içinde ıspanaklı iç harç.",
+    "alt": "Beyaz tabakta iki ıspanaklı kapalı Bafra pidesi"
+  },
+  {
+    "id": "patatesli",
+    "name": "Patatesli kaşarlı",
+    "title": "Patatesli kaşarlı Bafra pidesi",
+    "kind": "Kapalı pide",
+    "photo": "studio/patatesli.webp",
+    "theme": "#6e511d",
+    "light": "#f4c766",
+    "feature": "Yumuşak patates, eriyen kaşar",
+    "ingredients": "Patates|Kaşar peyniri",
+    "description": "Çıtır kabuğun altında patates ve kaşar peyniri.",
+    "alt": "Ahşap tahta üzerinde dilimlenmiş patatesli kaşarlı Bafra pidesi"
+  },
+  {
+    "id": "ustanin",
+    "name": "Ustanın pidesi",
+    "title": "Ustanın pidesi",
+    "kind": "Açık pide",
+    "photo": "studio/ustanin.webp",
+    "theme": "#702f23",
+    "light": "#eca577",
+    "feature": "Kuşbaşı ve mantar",
+    "ingredients": "Kuşbaşı et|Mantar|Kaşar peyniri|Kekik",
+    "description": "Açık hamurun üzerinde kuşbaşı et, mantar, kaşar ve kekik.",
+    "alt": "Tahta üzerinde kuşbaşı ve mantarlı açık pide"
+  },
+  {
+    "id": "trabzon",
+    "name": "Trabzon peynirlisi",
+    "title": "Trabzon peynirlisi",
+    "kind": "Açık pide",
+    "photo": "studio/trabzon.webp",
+    "theme": "#65452a",
+    "light": "#f0c18e",
+    "feature": "Trabzon peyniri",
+    "ingredients": "Trabzon peyniri",
+    "description": "Üstü kızarmış açık pidenin harcı Trabzon peyniri.",
+    "alt": "Beyaz tabakta kızarmış Trabzon peynirli açık pide"
+  }
+];
