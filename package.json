@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "esbuild motion.jsx --bundle --minify --jsx=automatic --outfile=dist/motion.js --legal-comments=linked"
+    "build": "node build-pages.mjs && esbuild motion.jsx --bundle --minify --jsx=automatic --outfile=dist/motion.js --legal-comments=linked"
   },
   "dependencies": {
     "gsap": "3.15.1",
@@ -13,5 +13,6 @@
   },
   "devDependencies": {
     "esbuild": "0.28.2"
-  }
+  },
+  "type": "module"
 }

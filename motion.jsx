@@ -4,10 +4,13 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { createRoot } from 'react-dom/client';
 import Magnet from './vendor/react-bits/Magnet.jsx';
-import { flavors } from './flavors.js';
+import { getFlavors } from './flavors.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const flavors = getFlavors(document.documentElement.lang);
+const rtl = document.documentElement.dir === 'rtl';
+const revealOrigin = rtl ? '30% 48%' : '70% 48%';
 const hero = document.querySelector('.hero');
 const picker = document.querySelector('.flavor-picker');
 const pickerLinks = [...picker.querySelectorAll('[data-select]')];
@@ -25,6 +28,7 @@ const detailFeature = document.querySelector('[data-detail-feature]');
 const detailLink = document.querySelector('[data-detail-link]');
 const ingredients = document.querySelector('[data-ingredients]');
 const cards = [...document.querySelectorAll('[data-dish]')];
+const languageLinks = [...document.querySelectorAll('[data-language]')];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 let selectedIndex = 0;
 let colorTween;
@@ -43,18 +47,21 @@ document.body.append(traveller);
 function updateArt(art, flavor) {
   art.dataset.art = flavor.id;
   const img = art.querySelector('img');
-  img.src = 'media/' + flavor.photo;
+  img.src = '/media/' + flavor.photo;
   if (art === heroArt) img.alt = flavor.alt;
 }
 
-function updateColor(previousColor, nextColor) {
+function updateColor(previousColor, nextColor, animate) {
   colorTween?.kill();
-  hero.style.setProperty('--flavor', reduced.matches ? nextColor : previousColor);
-  if (reduced.matches) return;
+  hero.style.setProperty('--flavor', animate ? previousColor : nextColor);
+  if (!animate) {
+    gsap.set(colorReveal, { opacity: 0 });
+    return;
+  }
   colorReveal.style.setProperty('--reveal-color', nextColor);
-  gsap.set(colorReveal, { opacity: 1, clipPath: 'circle(0% at 70% 48%)' });
+  gsap.set(colorReveal, { opacity: 1, clipPath: 'circle(0% at ' + revealOrigin + ')' });
   colorTween = gsap.to(colorReveal, {
-    clipPath: 'circle(135% at 70% 48%)', duration: 0.72, ease: 'power2.out',
+    clipPath: 'circle(135% at ' + revealOrigin + ')', duration: 0.72, ease: 'power2.out',
     onComplete: () => {
       hero.style.setProperty('--flavor', nextColor);
       gsap.set(colorReveal, { opacity: 0 });
@@ -62,14 +69,24 @@ function updateColor(previousColor, nextColor) {
   });
 }
 
-function selectFlavor(index, direction = 1) {
+function updateLanguageLinks() {
+  for (const link of languageLinks) {
+    const url = new URL(link.href);
+    if (selectedIndex) url.searchParams.set('pide', flavors[selectedIndex].id);
+    else url.searchParams.delete('pide');
+    url.hash = location.hash;
+    link.href = url.href;
+  }
+}
+
+function selectFlavor(index, direction = 1, animate = !reduced.matches) {
   const next = (index + flavors.length) % flavors.length;
   if (next === selectedIndex) return;
   const previous = flavors[selectedIndex];
   const flavor = flavors[next];
   selectedIndex = next;
 
-  updateColor(previous.theme, flavor.theme);
+  updateColor(previous.theme, flavor.theme, animate);
   hero.style.setProperty('--flavor-light', flavor.light);
   detailStage.style.setProperty('--detail-flavor', flavor.light);
   for (const art of [heroArt, detailArt, travelArt]) updateArt(art, flavor);
@@ -78,7 +95,7 @@ function selectFlavor(index, direction = 1) {
   detailName.textContent = flavor.title;
   detailFeature.textContent = flavor.feature;
   detailLink.href = '#dish-' + flavor.id;
-  ingredients.replaceChildren(...flavor.ingredients.split('|').map(text => {
+  ingredients.replaceChildren(...flavor.ingredients.map(text => {
     const item = document.createElement('li');
     item.textContent = text;
     return item;
@@ -90,12 +107,21 @@ function selectFlavor(index, direction = 1) {
   }
   for (const [position, card] of cards.entries()) card.classList.toggle('is-selected', position === next);
 
-  if (!reduced.matches) {
+  if (animate) {
     gsap.fromTo(heroArt, { x: direction * 32, opacity: 0.35, rotationY: direction * 14 }, {
       x: 0, opacity: 1, rotationY: 0, duration: 0.52, ease: 'power3.out', overwrite: true, clearProps: 'transform,opacity'
     });
   }
+  updateLanguageLinks();
   refreshTravel();
+}
+
+window.addEventListener('hashchange', updateLanguageLinks);
+for (const link of document.querySelectorAll('[data-recommend]')) {
+  link.addEventListener('click', event => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    selectFlavor(flavors.findIndex(dish => dish.id === link.dataset.recommend), 1, false);
+  });
 }
 
 for (const [index, link] of pickerLinks.entries()) {
@@ -106,7 +132,7 @@ for (const [index, link] of pickerLinks.entries()) {
   });
 }
 picker.addEventListener('keydown', event => {
-  const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+  const direction = ({ ArrowLeft: -1, ArrowRight: 1 }[event.key] ?? 0) * (rtl ? -1 : 1);
   if (!direction) return;
   event.preventDefault();
   selectFlavor(selectedIndex + direction, direction);
@@ -126,25 +152,10 @@ swipeSurface.addEventListener('pointerup', event => {
   const dy = event.clientY - swipeStart.y;
   swipeStart = undefined;
   if (Math.abs(dx) >= 44 && Math.abs(dx) > Math.abs(dy) * 1.25) {
-    const direction = dx < 0 ? 1 : -1;
+    const direction = (dx < 0 ? 1 : -1) * (rtl ? -1 : 1);
     selectFlavor(selectedIndex + direction, direction);
   }
 });
-
-const categoryLinks = [...document.querySelectorAll('[data-choice]')];
-const catalogSections = [...document.querySelectorAll('[data-category]')];
-
-function updateActiveCategory() {
-  const readingLine = window.innerHeight * 0.38;
-  const active = catalogSections.find(section => {
-    const { top, bottom } = section.getBoundingClientRect();
-    return top <= readingLine && bottom >= readingLine;
-  });
-  for (const link of categoryLinks) {
-    if (link.dataset.choice === active?.dataset.category) link.setAttribute('aria-current', 'true');
-    else link.removeAttribute('aria-current');
-  }
-}
 
 let frame;
 function requestFrame() {
@@ -152,7 +163,6 @@ function requestFrame() {
   frame = requestAnimationFrame(() => {
     frame = undefined;
     refreshTravel();
-    updateActiveCategory();
   });
 }
 window.addEventListener('scroll', requestFrame, { passive: true });
@@ -224,7 +234,7 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
   };
   refreshTravel();
 
-  for (const heading of document.querySelectorAll('.ritual h2, .selection h2, .menu-block h2, .visit h2')) {
+  for (const heading of document.querySelectorAll('.ritual h2, .selection h2, .visit h2')) {
     gsap.from(heading, {
       y: 16, opacity: 0.65, duration: 0.62, ease: 'power2.out',
       scrollTrigger: { trigger: heading, start: 'top 94%', once: true }
@@ -242,6 +252,10 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
     lenis.destroy();
   };
 });
+
+const requestedFlavor = flavors.findIndex(dish => dish.id === new URLSearchParams(location.search).get('pide'));
+if (requestedFlavor > 0) selectFlavor(requestedFlavor, 1, false);
+updateLanguageLinks();
 
 if (matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) {
   for (const holder of document.querySelectorAll('.magnet')) {
